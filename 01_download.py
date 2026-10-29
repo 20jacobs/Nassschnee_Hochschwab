@@ -11,8 +11,8 @@ import pandas as pd
 OUT = Path("data/raw")
 OUT.mkdir(parents=True, exist_ok=True)
 
-START = "2024-11-01T00:00:00.000Z"
-END   = "2025-07-01T00:00:00.000Z"
+START = "2025-11-01T00:00:00.000Z"
+END   = "2026-07-01T00:00:00.000Z"
 
 # Hochschwab: grobes Suchgebiet
 WEST, SOUTH, EAST, NORTH = 15.0, 47.4, 15.4, 47.7
@@ -87,8 +87,21 @@ token_response = requests.post(
     },
     timeout=60
 )
-token_response.raise_for_status()
+
+if not token_response.ok:
+    print("HTTP-Status:", token_response.status_code)
+    try:
+        print("CDSE-Antwort:", token_response.json())
+    except ValueError:
+        print("CDSE-Antwort:", token_response.text)
+
+    raise RuntimeError(
+        "Token konnte nicht erstellt werden. "
+        "Bitte die angezeigte Fehlermeldung prüfen."
+    )
+
 token = token_response.json()["access_token"]
+
 
 session = requests.Session()
 session.headers.update({"Authorization": f"Bearer {token}"})
